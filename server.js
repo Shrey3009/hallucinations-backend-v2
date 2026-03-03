@@ -24,6 +24,7 @@ const AUT_gpt = require("./routes/AUT_gptRoutes");
 const chatMessages = require("./routes/chatMessagesRoute");
 const PatentRoutes = require("./routes/PatentRoutes");
 const openaiRoute = require("./routes/OpenAiRoute");
+const TaskPostSurvey = require("./routes/TaskPostSurveyRoutes");
 
 app.use("/api", PreSurvey);
 app.use("/api", AUT);
@@ -32,6 +33,7 @@ app.use("/api", PostSurvey);
 app.use("/api/chatbotmessages", chatMessages);
 app.use("/api", PatentRoutes);
 app.use("/api", openaiRoute);
+app.use("/api", TaskPostSurvey);
 
 // Health check
 app.get("/api/dbcheck", (req, res) => {

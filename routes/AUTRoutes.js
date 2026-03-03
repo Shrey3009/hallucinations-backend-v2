@@ -4,7 +4,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 
 router.post("/AUT", async (req, res) => {
-  const { useCases, preSurveyId, object } = req.body;
+  const { generatedIdeas, selectedIdea, refinedIdea, preSurveyId, object } = req.body;
 
   // Validate preSurveyId
   if (!mongoose.Types.ObjectId.isValid(preSurveyId)) {
@@ -13,8 +13,8 @@ router.post("/AUT", async (req, res) => {
 
   try {
     console.log("AUT got hit", req.body); // Logging the event correctly
-    // Create a new AUT document with an array of use cases and the preSurveyId
-    const aut = new AUT({ useCases, preSurveyId, object });
+    // Create a new AUT document
+    const aut = new AUT({ generatedIdeas, selectedIdea, refinedIdea, preSurveyId, object });
     await aut.save();
     res.status(201).send(aut);
   } catch (error) {

@@ -1,22 +1,22 @@
 const mongoose = require("mongoose");
 
-const UseCaseSchema = new mongoose.Schema({
-  use: { type: String },
-  explanation: { type: String },
-});
-
-const AUTSchema = new mongoose.Schema({
-  useCases: [UseCaseSchema], // This defines `useCases` as an array of UseCaseSchema
-  round: Number,
-  preSurveyId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "PreSurvey",
-    required: true,
+const AUTSchema = new mongoose.Schema(
+  {
+    preSurveyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PreSurvey",
+      required: true,
+    },
+    generatedIdeas: [{ type: String }],
+    selectedIdea: { type: String },
+    refinedIdea: { type: String },
+    round: Number,
+    object: String,
+    temperature: Number,
+    task: Number,
   },
-  object: String,
-  temperature: Number,
-  task: Number,
-});
+  { timestamps: true }
+);
 
 const AUT_gpt = mongoose.model("AUT_gpt", AUTSchema);
 

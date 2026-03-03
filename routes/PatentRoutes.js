@@ -82,48 +82,12 @@ router.post("/patent-assignment", async (req, res) => {
       });
     }
 
-    // ---- Task 1: Random patent from any category ----
-    const task1Patent =
-      allPatents[Math.floor(Math.random() * allPatents.length)];
+    // ---- Task Assignment (2 Tasks) ----
+    const shuffledPatents = allPatents.sort(() => Math.random() - 0.5);
+    const task1Patent = shuffledPatents[0];
+    const task2Patent = shuffledPatents[1];
 
-    // ---- Tasks 2–4: Random patents from unique categories ----
-    const categories = [
-      "Smart Interactive Beverage & Food Containers",
-      "Healthcare",
-      "Automation",
-    ];
-    const shuffledCategories = categories.sort(() => Math.random() - 0.5);
-
-    const [task2Category, task3Category, task4Category] = shuffledCategories;
-
-    // helper: pick a random patent from a category, excluding certain IDs
-    function getRandomPatentFromCategory(category, excludeIds = []) {
-      const candidates = allPatents.filter(
-        (p) =>
-          p.category === category && !excludeIds.includes(p._id.toString())
-      );
-      if (candidates.length === 0) return null;
-      return candidates[Math.floor(Math.random() * candidates.length)];
-    }
-
-    const task2Patent = getRandomPatentFromCategory(task2Category, [
-      task1Patent._id.toString(),
-    ]);
-    const task3Patent = getRandomPatentFromCategory(task3Category, [
-      task1Patent._id.toString(),
-    ]);
-    const task4Patent = getRandomPatentFromCategory(task4Category, [
-      task1Patent._id.toString(),
-    ]);
-
-    if (!task2Patent || !task3Patent || !task4Patent) {
-      return res.status(400).json({
-        success: false,
-        message: "Not enough patents in each category to assign unique patents",
-      });
-    }
-
-    // ---- Randomize levels for tasks 2–4 ----
+    // ---- Randomize levels for both tasks ----
     function shuffleArray(array) {
       const newArr = [...array];
       for (let i = newArr.length - 1; i > 0; i--) {
@@ -133,22 +97,16 @@ router.post("/patent-assignment", async (req, res) => {
       return newArr;
     }
 
-    const shuffledLevels = shuffleArray(["low", "medium", "high"]);
-    const [task2Level, task3Level, task4Level] = shuffledLevels;
+    const shuffledLevels = shuffleArray(["low", "medium", "high", "low"]).slice(0, 2);
+    const [task1Level, task2Level] = shuffledLevels;
 
     // ---- Save assignment ----
     const patentSelection = new PatentSelection({
       preSurveyId,
       task1Patent: task1Patent._id,
       task2Patent: task2Patent._id,
-      task3Patent: task3Patent._id,
-      task4Patent: task4Patent._id,
-      task2Category,
-      task3Category,
-      task4Category,
+      task1Level,
       task2Level,
-      task3Level,
-      task4Level,
     });
 
     const savedSelection = await patentSelection.save();
@@ -157,9 +115,7 @@ router.post("/patent-assignment", async (req, res) => {
       savedSelection._id
     )
       .populate("task1Patent")
-      .populate("task2Patent")
-      .populate("task3Patent")
-      .populate("task4Patent");
+      .populate("task2Patent");
 
     res.status(201).json({
       success: true,
@@ -183,9 +139,7 @@ router.get("/patent-assignment/:preSurveyId", async (req, res) => {
 
     const assignment = await PatentSelection.findOne({ preSurveyId })
       .populate("task1Patent")
-      .populate("task2Patent")
-      .populate("task3Patent")
-      .populate("task4Patent");
+      .populate("task2Patent");
 
     if (!assignment) {
       return res.status(404).json({
@@ -216,9 +170,7 @@ router.get("/patent-for-task/:preSurveyId/:taskNumber", async (req, res) => {
 
     const assignment = await PatentSelection.findOne({ preSurveyId })
       .populate("task1Patent")
-      .populate("task2Patent")
-      .populate("task3Patent")
-      .populate("task4Patent");
+      .populate("task2Patent");
 
     if (!assignment) {
       return res.status(404).json({
@@ -230,14 +182,11 @@ router.get("/patent-for-task/:preSurveyId/:taskNumber", async (req, res) => {
     const taskMap = {
       1: assignment.task1Patent,
       2: assignment.task2Patent,
-      3: assignment.task3Patent,
-      4: assignment.task4Patent,
     };
 
     const levelMap = {
+      1: assignment.task1Level,
       2: assignment.task2Level,
-      3: assignment.task3Level,
-      4: assignment.task4Level,
     };
 
     const patent = taskMap[taskNumber];
@@ -246,7 +195,7 @@ router.get("/patent-for-task/:preSurveyId/:taskNumber", async (req, res) => {
     if (!patent) {
       return res.status(400).json({
         success: false,
-        message: "Invalid task number. Must be 1, 2, 3, or 4",
+        message: "Invalid task number. Must be 1 or 2",
       });
     }
 

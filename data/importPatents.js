@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const XLSX = require("xlsx");
 const Patent = require("../models/Patent");
 require("dotenv").config();
+const path = require("path");
 
 // 1. Connect to MongoDB
 mongoose
@@ -11,7 +12,8 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // 2. Load Excel file
-const workbook = XLSX.readFile("Patent_Data_Updated.xlsx"); 
+const excelPath = path.join(__dirname, "Patent_Data_Updated.xlsx");
+const workbook = XLSX.readFile(excelPath);
 const sheet = workbook.Sheets["Simplified Version"]; // new sheet name
 const rows = XLSX.utils.sheet_to_json(sheet);
 

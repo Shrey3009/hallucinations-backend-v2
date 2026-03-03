@@ -30,24 +30,7 @@ const PreSurveySchema = new mongoose.Schema(
       enum: ["None", "Some", "Extensive"],
       trim: true,
     },
-    healthcareFamiliarity: {
-      type: String,
-      required: [true, "Healthcare familiarity is required"],
-      enum: ["1", "2", "3", "4", "5"],
-      trim: true,
-    },
-    automationFamiliarity: {
-      type: String,
-      required: [true, "Automation familiarity is required"],
-      enum: ["1", "2", "3", "4", "5"],
-      trim: true,
-    },
-    smartDevicesFamiliarity: {
-      type: String,
-      required: [true, "Smart devices familiarity is required"],
-      enum: ["1", "2", "3", "4", "5"],
-      trim: true,
-    },
+
   },
   {
     timestamps: true,

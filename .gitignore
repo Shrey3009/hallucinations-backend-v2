@@ -1,3 +1,5 @@
-.env
 node_modules
-mongodb id pass.txt
+.env
+.vercel
+package-lock.json
+*.log
