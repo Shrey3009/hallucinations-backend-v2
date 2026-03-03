@@ -8,7 +8,7 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: true }));
+app.use(cors());
 
 // Logging middleware
 app.use((req, res, next) => {

@@ -13,13 +13,18 @@ async function connectDB() {
   }
 
   if (!cached.promise) {
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
     console.log(
-      "Connecting to MongoDB URI:",
-      process.env.MONGO_URI ? "defined" : "MISSING!"
+      "Connecting to MongoDB:",
+      uri ? "URI defined" : "MISSING MONGO_URI/MONGODB_URI!"
     );
 
+    if (!uri) {
+      throw new Error("MongoDB URI is missing in environment variables");
+    }
+
     cached.promise = mongoose
-      .connect(process.env.MONGO_URI, {
+      .connect(uri, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         serverSelectionTimeoutMS: 10000,
