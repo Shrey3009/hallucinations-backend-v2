@@ -30,7 +30,11 @@ const PreSurveySchema = new mongoose.Schema(
       enum: ["None", "Some", "Extensive"],
       trim: true,
     },
-
+    surveyCode: {
+      type: String,
+      default: null,
+      trim: true,
+    },
   },
   {
     timestamps: true,
