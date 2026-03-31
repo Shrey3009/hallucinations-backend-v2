@@ -14,13 +14,11 @@ const chatMessagesSchema = new mongoose.Schema({
     required: true,
   },
   task: { type: Number, required: true },
-  round: { type: Number, default: null }, // null for Task 1
+  round: { type: Number, required: true },
   level: {
     type: String,
     enum: ["low", "medium", "high"],
-    required: function () {
-      return this.task > 1; // only required for tasks 2–4
-    },
+    required: true,
   },
 });
 

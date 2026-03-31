@@ -17,38 +17,28 @@ router.post("/", async (req, res) => {
 
     const taskNum = Number(task);
 
-    // For tasks 2–4 we require a round (1 or 2)
-    if (taskNum > 1 && (round === null || typeof round === "undefined")) {
-      return res.status(400).json({ error: "round is required for tasks 2–4" });
+    if (round === null || typeof round === "undefined") {
+      return res.status(400).json({ error: "round is required" });
     }
 
     // Always fetch the level from PatentSelection; never trust client body
-    let enforcedLevel = undefined;
-
-    if (taskNum > 1) {
-      const mapping = await PatentSelection.findOne({ preSurveyId }).lean();
-      if (!mapping) {
-        return res.status(404).json({ error: "PatentSelection mapping not found for this preSurveyId" });
-      }
-
-      const levelField =
-        taskNum === 2 ? "task2Level" :
-        taskNum === 3 ? "task3Level" :
-        taskNum === 4 ? "task4Level" : null;
-
-      if (!levelField || !mapping[levelField]) {
-        return res.status(400).json({ error: "Invalid task or level missing in PatentSelection" });
-      }
-
-      enforcedLevel = mapping[levelField]; // "low" | "medium" | "high"
+    const mapping = await PatentSelection.findOne({ preSurveyId }).lean();
+    if (!mapping) {
+      return res.status(404).json({ error: "PatentSelection mapping not found for this preSurveyId" });
     }
 
-    // Persist using the enforcedLevel (or null for task 1)
+    if (!mapping.level) {
+      return res.status(400).json({ error: "Level missing in PatentSelection" });
+    }
+
+    const enforcedLevel = mapping.level; // "low" | "medium" | "high"
+
+    // Persist using the enforcedLevel
     const doc = await ChatMessages.create({
       preSurveyId,
       task: taskNum,
-      round: taskNum === 1 ? null : Number(round),
-      level: taskNum === 1 ? undefined : enforcedLevel,
+      round: Number(round),
+      level: enforcedLevel,
       chatMessages,
     });
 

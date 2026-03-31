@@ -51,84 +51,87 @@ router.get("/patents/category/:category", async (req, res) => {
 // Assign patents to a user (called when PreSurvey is submitted)
 router.post("/patent-assignment", async (req, res) => {
   try {
-    console.log("Incoming body for /patent-assignment:", req.body);
     const { preSurveyId } = req.body;
 
     if (!preSurveyId) {
-      return res.status(400).json({
-        success: false,
-        message: "preSurveyId is required",
-      });
+      return res.status(400).json({ success: false, message: "preSurveyId is required" });
     }
 
     // Check if already assigned
-    const existingAssignment = await PatentSelection.findOne({ preSurveyId });
+    const existingAssignment = await PatentSelection.findOne({ preSurveyId })
+      .populate("task1Patent")
+      .populate("task2Patent");
     if (existingAssignment) {
-      return res.status(200).json({
-        success: true,
-        message: "Patents already assigned to this user",
-        data: existingAssignment,
-      });
+      return res.status(200).json({ success: true, message: "Already assigned", data: existingAssignment });
     }
 
-    // Get all patents
-    const allPatents = await Patent.find();
-    console.log("Total patents in DB:", allPatents.length);
+    // --- Balanced Randomization Logic ---
+    const categories = [1, 2, 3, 4];
+    const levels = ["low", "medium", "high"];
+    const sequences = ["baseline_first", "ai_first"];
 
-    if (allPatents.length < 4) {
-      return res.status(400).json({
-        success: false,
-        message: "Not enough patents in database to assign",
-      });
+    // 1. Create all 24 combinations
+    const combinations = [];
+    for (const cIdx of categories) {
+      for (const lvl of levels) {
+        for (const seq of sequences) {
+          combinations.push({ categoryIndex: cIdx, level: lvl, taskSequence: seq });
+        }
+      }
     }
 
-    // ---- Task Assignment (2 Tasks) ----
-    const shuffledPatents = allPatents.sort(() => Math.random() - 0.5);
+    // 2. Count existing entries for each combination
+    const counts = await Promise.all(
+      combinations.map(async (comb) => {
+        const count = await PatentSelection.countDocuments(comb);
+        return { ...comb, count };
+      })
+    );
+
+    // 3. Find segments with the lowest count
+    const minCount = Math.min(...counts.map((c) => c.count));
+    const bestCombinations = counts.filter((c) => c.count === minCount);
+
+    // 4. Pick one randomly from the candidates
+    const selected = bestCombinations[Math.floor(Math.random() * bestCombinations.length)];
+    const { categoryIndex, level, taskSequence } = selected;
+
+    // 5. Get patents for that category
+    const patentsInCategory = await Patent.find({ categoryIndex });
+    if (patentsInCategory.length < 2) {
+      return res.status(400).json({ success: false, message: `Only ${patentsInCategory.length} patents found in category ${categoryIndex}` });
+    }
+
+    // Randomize which patent is task1 vs task2
+    const shuffledPatents = patentsInCategory.sort(() => Math.random() - 0.5);
     const task1Patent = shuffledPatents[0];
     const task2Patent = shuffledPatents[1];
 
-    // ---- Randomize levels for both tasks ----
-    function shuffleArray(array) {
-      const newArr = [...array];
-      for (let i = newArr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-      }
-      return newArr;
-    }
-
-    const shuffledLevels = shuffleArray(["low", "medium", "high", "low"]).slice(0, 2);
-    const [task1Level, task2Level] = shuffledLevels;
-
-    // ---- Save assignment ----
+    // 6. Save assignment
     const patentSelection = new PatentSelection({
       preSurveyId,
       task1Patent: task1Patent._id,
       task2Patent: task2Patent._id,
-      task1Level,
-      task2Level,
+      task1Level: level,
+      task2Level: level,
+      categoryIndex,
+      level,
+      taskSequence,
     });
 
     const savedSelection = await patentSelection.save();
 
-    const populatedSelection = await PatentSelection.findById(
-      savedSelection._id
-    )
-      .populate("task1Patent")
-      .populate("task2Patent");
-
     res.status(201).json({
       success: true,
-      message: "Patents assigned successfully",
-      data: populatedSelection,
+      data: {
+        ...savedSelection.toObject(),
+        task1Patent,
+        task2Patent,
+      },
     });
   } catch (error) {
     console.error("Error assigning patents:", error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred while assigning patents",
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: "An error occurred", error: error.message });
   }
 });
 

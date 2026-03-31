@@ -19,6 +19,9 @@ const PatentSelectionSchema = new mongoose.Schema(
     },
     task1Level: { type: String, enum: ["low", "medium", "high"], required: true },
     task2Level: { type: String, enum: ["low", "medium", "high"], required: true },
+    categoryIndex: { type: Number, required: true }, // Tracker: 1, 2, 3, or 4
+    level: { type: String, enum: ["low", "medium", "high"], required: true }, // The single level used for both tasks
+    taskSequence: { type: String, enum: ["baseline_first", "ai_first"], required: true }, // Tracker: [AUT, AUT_gpt] or [AUT_gpt, AUT]
   },
   {
     timestamps: true,

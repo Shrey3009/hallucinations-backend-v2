@@ -13,7 +13,7 @@ const PatentSchema = new mongoose.Schema(
     },
     classifications: {
       type: String,
-      required: [true, "Classifications are required"],
+      required: false,
       trim: true,
     },
     patentName: {
@@ -23,7 +23,7 @@ const PatentSchema = new mongoose.Schema(
     },
     patentLink: {
       type: String,
-      required: [true, "Patent link is required"],
+      required: false,
       trim: true,
     },
     patentDescription: {
@@ -33,13 +33,14 @@ const PatentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      required: [true, "Status is required"],
+      required: false,
       enum: ["active", "pending", "abandoned", "expired"],
       trim: true,
+      default: "active"
     },
     year: {
       type: Number,
-      required: [true, "Year is required"],
+      required: false,
     },
     lowHallucinationExample: {
       type: String,
