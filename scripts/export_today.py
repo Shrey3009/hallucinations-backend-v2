@@ -223,7 +223,7 @@ def _send_with_attachments(filenames, date_lbl):
         return
         
     msg = Mail(
-        from_email=From(EMAIL_FROM, "Study Admin"),
+        from_email=From(EMAIL_FROM, "Daily Exports"),
         to_emails=EMAIL_TO,
         subject=f"Daily Consolidated CSV ({date_lbl})",
         plain_text_content="Attached are today's CSV and the full consolidated CSV."
