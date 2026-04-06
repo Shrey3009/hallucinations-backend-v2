@@ -10,6 +10,15 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// Explicitly handle preflight OPTIONS requests for Vercel
+app.options('*', cors());
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
 // Logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
