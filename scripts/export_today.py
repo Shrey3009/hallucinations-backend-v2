@@ -254,7 +254,7 @@ def _send_no_data(date_lbl):
         return
         
     msg = Mail(
-        from_email=From(EMAIL_FROM, "Study Admin"),
+        from_email=From(EMAIL_FROM, "Daily Exports"),
         to_emails=EMAIL_TO,
         subject=f"Daily Consolidated CSV \u2013 No Data ({date_lbl})",
         plain_text_content="No new data was found today."
