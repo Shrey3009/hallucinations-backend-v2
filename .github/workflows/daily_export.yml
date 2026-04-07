@@ -1,10 +1,9 @@
 name: Daily CSV Export
 
 on:
-  schedule:
-    # 00:00 UTC corresponds to 8:00 PM EDT (or 7:00 PM EST depending on daylight savings)
-    - cron: '0 0 * * *'
-  workflow_dispatch: # Allows manual trigger from GitHub UI for testing
+  workflow_dispatch:
+  repository_dispatch:
+    types: [webhook_export]
 
 jobs:
   export_and_email:
