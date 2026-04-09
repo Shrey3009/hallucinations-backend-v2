@@ -12,9 +12,7 @@ from sendgrid.helpers.mail import Mail, From, Attachment, FileContent, FileName,
 
 # ------------------ CONFIG ------------------
 load_dotenv()
-
-DB_NAME = "test"
-
+DB_NAME = "hallucinations_v2"
 MONGO_URI = os.environ.get("MONGO_URI")
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 EMAIL_FROM = os.environ.get("EMAIL_FROM")                 

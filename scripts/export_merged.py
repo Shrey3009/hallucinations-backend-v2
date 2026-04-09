@@ -5,8 +5,7 @@ from bson import ObjectId
 from dotenv import load_dotenv
 
 load_dotenv()
-
-DB_NAME = "test"
+DB_NAME = "hallucinations_v2"
 
 def main():
     uri = os.environ.get("MONGO_URI")
