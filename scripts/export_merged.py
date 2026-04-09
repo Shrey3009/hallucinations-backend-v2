@@ -26,7 +26,6 @@ def main():
 
     # ----- Index collections by preSurveyId -----
     selections = {str(d["preSurveyId"]): d for d in db.patentselections.find()}
-    posts = {str(d["preSurveyId"]): d for d in db.postsurveys.find()}
     
     aut_baseline = defaultdict(list)
     for d in db.auts.find():
@@ -152,18 +151,7 @@ def main():
             row[f"task{t}AIHelpfulness"] = tpost.get("aiPhaseHelpfulness", "")
             row[f"task{t}AIGroundedness"] = tpost.get("aiSuggestionsGroundedness", "")
 
-        # ---- Final PostSurvey ----
-        post = posts.get(pid, {})
-        row.update({
-            "accuracy": post.get("accuracy", ""),
-            "helpfulness": post.get("helpfulness", ""),
-            "inspiration": post.get("inspiration", ""),
-            "expansion": post.get("expansion", ""),
-            "recombination": post.get("recombination", ""),
-            "problems": post.get("problems", ""),
-            "improvements": post.get("improvements", "")
-        })
-
+        # ---- Final PostSurvey Removed ----
         rows.append(row)
 
     # ----- Ordered Fieldnames -----
@@ -176,6 +164,7 @@ def main():
     for t in (1, 2):
         fieldnames.extend([
             f"task{t}Type", f"task{t}PatentCategory", f"task{t}PatentName", f"task{t}Level",
+            f"task{t}_ideasRound1", f"task{t}_selectedIdea", f"task{t}_refinedIdea",
             f"task{t}Phase1UserChatCount", f"task{t}Phase1UserChatMessages",
             f"task{t}Phase1GPTChatCount", f"task{t}Phase1GPTChatMessages",
             f"task{t}Phase3UserChatCount", f"task{t}Phase3UserChatMessages",
@@ -184,9 +173,7 @@ def main():
             f"task{t}AIExpansion", f"task{t}AIRefinement", f"task{t}AIHelpfulness", f"task{t}AIGroundedness",
         ])
 
-    fieldnames.extend([
-        "accuracy", "helpfulness", "inspiration", "expansion", "recombination", "problems", "improvements"
-    ])
+    # No global post survey fields
 
     # Ensure all fieldnames exist in all rows
     clean_rows = []
