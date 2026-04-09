@@ -52,9 +52,10 @@ def _master_fieldnames():
     for t in (1, 2):
         fieldnames.extend([
             f"task{t}Type", f"task{t}PatentCategory", f"task{t}PatentName", f"task{t}Level",
-            f"task{t}_ideasRound1", f"task{t}_selectedIdea", f"task{t}_refinedIdea",
-            f"task{t}UserChatCount", f"task{t}UserChatMessages",
-            f"task{t}GPTChatCount", f"task{t}GPTChatMessages",
+            f"task{t}Phase1UserChatCount", f"task{t}Phase1UserChatMessages",
+            f"task{t}Phase1GPTChatCount", f"task{t}Phase1GPTChatMessages",
+            f"task{t}Phase3UserChatCount", f"task{t}Phase3UserChatMessages",
+            f"task{t}Phase3GPTChatCount", f"task{t}Phase3GPTChatMessages",
             f"task{t}Familiarity", f"task{t}Difficulty",
             f"task{t}AIExpansion", f"task{t}AIRefinement", f"task{t}AIHelpfulness", f"task{t}AIGroundedness",
         ])
@@ -158,24 +159,37 @@ def export_today_csv(db):
                     row[f"task{t}_refinedIdea"] = latest.get("refinedIdea", "")
 
             if is_ai:
-                user_msgs, gpt_msgs = [], []
+                p1_user_msgs, p1_gpt_msgs = [], []
+                p3_user_msgs, p3_gpt_msgs = [], []
                 for doc in chats.get(pid, []):
                     if doc.get("task") == t:
+                        r = doc.get("round")
                         for m in doc.get("chatMessages", []):
-                            if m.get("sender") == "user" or m.get("direction") == "outgoing":
-                                user_msgs.append(m.get("message", m.get("text", "")))
-                            else:
-                                gpt_msgs.append(m.get("message", m.get("text", "")))
+                            msg_text = str(m.get("message", m.get("text", "")))
+                            is_user = (m.get("sender") == "user" or m.get("direction") == "outgoing")
+                            if r == 1:
+                                p1_user_msgs.append(msg_text) if is_user else p1_gpt_msgs.append(msg_text)
+                            elif r == 3:
+                                p3_user_msgs.append(msg_text) if is_user else p3_gpt_msgs.append(msg_text)
 
-                row[f"task{t}UserChatCount"] = len(user_msgs)
-                row[f"task{t}UserChatMessages"] = " | ".join([str(msg) for msg in user_msgs])
-                row[f"task{t}GPTChatCount"] = len(gpt_msgs)
-                row[f"task{t}GPTChatMessages"] = " | ".join([str(msg) for msg in gpt_msgs])
+                row[f"task{t}Phase1UserChatCount"] = len(p1_user_msgs)
+                row[f"task{t}Phase1UserChatMessages"] = " | ".join(p1_user_msgs)
+                row[f"task{t}Phase1GPTChatCount"] = len(p1_gpt_msgs)
+                row[f"task{t}Phase1GPTChatMessages"] = " | ".join(p1_gpt_msgs)
+                
+                row[f"task{t}Phase3UserChatCount"] = len(p3_user_msgs)
+                row[f"task{t}Phase3UserChatMessages"] = " | ".join(p3_user_msgs)
+                row[f"task{t}Phase3GPTChatCount"] = len(p3_gpt_msgs)
+                row[f"task{t}Phase3GPTChatMessages"] = " | ".join(p3_gpt_msgs)
             else:
-                row[f"task{t}UserChatCount"] = 0
-                row[f"task{t}UserChatMessages"] = ""
-                row[f"task{t}GPTChatCount"] = 0
-                row[f"task{t}GPTChatMessages"] = ""
+                row[f"task{t}Phase1UserChatCount"] = 0
+                row[f"task{t}Phase1UserChatMessages"] = ""
+                row[f"task{t}Phase1GPTChatCount"] = 0
+                row[f"task{t}Phase1GPTChatMessages"] = ""
+                row[f"task{t}Phase3UserChatCount"] = 0
+                row[f"task{t}Phase3UserChatMessages"] = ""
+                row[f"task{t}Phase3GPTChatCount"] = 0
+                row[f"task{t}Phase3GPTChatMessages"] = ""
 
             tpost = next((d for d in task_posts.get(pid, []) if d.get("taskNumber") == t), {})
             row[f"task{t}Familiarity"] = tpost.get("familiarity", "")
