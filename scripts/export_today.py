@@ -1,4 +1,6 @@
 import os, csv, base64, subprocess
+import openpyxl
+from openpyxl.styles import numbers as xl_numbers
 from collections import defaultdict
 from datetime import datetime, timedelta, time
 from zoneinfo import ZoneInfo
@@ -109,7 +111,7 @@ def export_today_csv(db):
             "presurveyDate": (
                 pre["createdAt"]
                 .astimezone(ZoneInfo("America/New_York"))
-                .strftime("%Y-%m-%d %H:%M:%S")
+                .replace(tzinfo=None)          # openpyxl needs naive datetime
                 if pre.get("createdAt") else ""
             ),
             "surveyCode": pre.get("surveyCode", ""),
@@ -210,12 +212,29 @@ def export_today_csv(db):
         clean_row = {fn: r.get(fn, "") for fn in fieldnames}
         clean_rows.append(clean_row)
 
-    filename = f"consolidated_{date_lbl}.csv"
-    with open(filename, "w", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-        w.writeheader()
-        for cr in clean_rows:
-            w.writerow(cr)
+    # Write as .xlsx so Excel displays the date column correctly
+    filename = f"consolidated_{date_lbl}.xlsx"
+    wb = openpyxl.Workbook()
+    ws = wb.active
+
+    # Header row
+    ws.append(fieldnames)
+
+    # Find which column index presurveyDate is (1-based for openpyxl)
+    date_col_idx = fieldnames.index("presurveyDate") + 1
+
+    # Data rows
+    for cr in clean_rows:
+        ws.append([cr.get(fn, "") for fn in fieldnames])
+
+    # Explicitly format the date column so Excel shows full date + time
+    dt_fmt = "MM/DD/YYYY HH:MM:SS AM/PM"
+    for row in ws.iter_rows(min_row=2, min_col=date_col_idx, max_col=date_col_idx):
+        for cell in row:
+            if isinstance(cell.value, datetime):
+                cell.number_format = dt_fmt
+
+    wb.save(filename)
 
     return filename, date_lbl, len(rows)
 
