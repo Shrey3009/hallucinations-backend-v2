@@ -1,5 +1,7 @@
 import os, csv
 from collections import defaultdict
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pymongo import MongoClient
 from bson import ObjectId
 from dotenv import load_dotenv
@@ -52,7 +54,12 @@ def main():
         # 1. Demographics & Configuration
         row = {
             "preSurveyId": pid, 
-            "presurveyDate": str(pre.get("createdAt", "")),
+            "presurveyDate": (
+                pre["createdAt"]
+                .astimezone(ZoneInfo("America/New_York"))
+                .strftime("%m/%d/%Y %I:%M:%S %p")  # e.g. 04/06/2026 10:55:36 PM
+                if pre.get("createdAt") else ""
+            ),
             "surveyCode": pre.get("surveyCode", ""),
             "age": pre.get("age", ""),
             "gender": pre.get("gender", ""),
