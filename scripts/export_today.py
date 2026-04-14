@@ -106,7 +106,12 @@ def export_today_csv(db):
         
         row = {
             "preSurveyId": pid, 
-            "presurveyDate": str(pre.get("createdAt", "")),
+            "presurveyDate": (
+                pre["createdAt"]
+                .astimezone(ZoneInfo("America/New_York"))
+                .strftime("%Y-%m-%d %H:%M:%S")
+                if pre.get("createdAt") else ""
+            ),
             "surveyCode": pre.get("surveyCode", ""),
             "age": pre.get("age", ""),
             "gender": pre.get("gender", ""),
